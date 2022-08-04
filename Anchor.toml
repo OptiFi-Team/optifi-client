@@ -1,0 +1,18 @@
+[features]
+seeds = false
+
+[programs]
+optifi_cpi = "optFiKjQpoQ3PvacwnFWaPUAqXCETMJSz2sz8HwPe9B"
+
+[programs.devnet]
+optifi_cpi = "DeVoPfWrDn2UTA1MbSfagvpQxA91MpNFQnhHRw19dK34"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
