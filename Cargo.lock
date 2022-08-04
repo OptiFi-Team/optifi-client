@@ -740,7 +740,7 @@ dependencies = [
 [[package]]
 name = "crank"
 version = "0.2.0"
-source = "git+https://github.com/OptiFi-Team/serum-dex.git#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
+source = "git+https://github.com/OptiFi-Team/serum-dex.git?branch=master#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
 dependencies = [
  "anyhow",
  "clap 3.2.16",
@@ -2922,7 +2922,7 @@ dependencies = [
 [[package]]
 name = "serum-common"
 version = "0.1.0"
-source = "git+https://github.com/OptiFi-Team/serum-dex.git#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
+source = "git+https://github.com/OptiFi-Team/serum-dex.git?branch=master#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
 dependencies = [
  "anyhow",
  "arrayref",
@@ -2964,7 +2964,7 @@ dependencies = [
 [[package]]
 name = "serum_dex"
 version = "0.5.6"
-source = "git+https://github.com/OptiFi-Team/serum-dex.git#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
+source = "git+https://github.com/OptiFi-Team/serum-dex.git?branch=master#6c7ec79e0a1f9aae86ffa3c5274ead182da9652c"
 dependencies = [
  "arrayref",
  "bincode",
