@@ -920,13 +920,36 @@ impl OptifiClient {
 
         // Calculation
 
-        let limit = (price * 10_u32.pow(USDC_DECIMALS - asset.get_decimal()) as f64) as u64;
+        // let limit = (price * 10_u32.pow(USDC_DECIMALS - asset.get_decimal()) as f64) as u64;
+        let limit = Decimal::from_f64(price)
+            .unwrap()
+            .checked_mul(
+                Decimal::from_u64(10_u64.pow(USDC_DECIMALS - asset.get_decimal())).unwrap(),
+            )
+            .unwrap()
+            .to_u64()
+            .unwrap();
 
-        let max_coin_qty = (size * 10_u32.pow(asset.get_decimal()) as f64) as u64;
+        // let max_coin_qty = (size * 10_u32.pow(asset.get_decimal()) as f64) as u64;
+        let max_coin_qty = Decimal::from_f64(size)
+            .unwrap()
+            .checked_mul(Decimal::from_u64(10_u64.pow(asset.get_decimal())).unwrap())
+            .unwrap()
+            .to_u64()
+            .unwrap();
 
-        let max_pc_qty = limit * max_coin_qty;
-
-        let max_pc_qty = (max_pc_qty as f64 * (1.0 + TAKER_FEE)) as u64;
+        // let max_pc_qty = ((limit * max_coin_qty) as f64 * (1.0 + TAKER_FEE)) as u64;
+        let max_pc_qty = Decimal::from_u64(limit * max_coin_qty)
+            .unwrap()
+            .checked_mul(
+                Decimal::from_f64(1.0)
+                    .unwrap()
+                    .checked_add(Decimal::from_f64(TAKER_FEE).unwrap())
+                    .unwrap(),
+            )
+            .unwrap()
+            .to_u64()
+            .unwrap();
 
         // Margin Stress
 

@@ -25,6 +25,7 @@ pub mod prelude {
 
     pub use serum_crank::{get_keys_for_market, MarketPubkeys};
 
+    pub use rust_decimal::prelude::*;
     pub use serde_json::json;
 
     pub use core::time;

@@ -2194,13 +2194,14 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "optifi-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
  "anchor-spl",
  "crank",
  "optifi-cpi",
+ "rust_decimal",
  "serde_json",
  "serum_dex 0.5.6",
  "shellexpand",
@@ -2700,6 +2701,17 @@ checksum = "ffc936cf8a7ea60c58f030fd36a612a48f440610214dc54bc36431f9ea0c3efb"
 dependencies = [
  "libc",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "rust_decimal"
+version = "1.26.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee9164faf726e4f3ece4978b25ca877ddc6802fa77f38cdccb32c7f805ecd70c"
+dependencies = [
+ "arrayvec 0.7.2",
+ "num-traits",
+ "serde",
 ]
 
 [[package]]
