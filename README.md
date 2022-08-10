@@ -20,3 +20,6 @@ dev tooling for [OptiFi](https://www.optifi.app)
 
 1. Add `features = ["cpi", "devnet"]}` to  `optifi-cpi` in `programs/optifi-client/Cargo.toml` for running on **devnet**
 2. Run some tests in `programs/optifi-client/tests/mod.rs`
+
+## Error Handle
+Run `rustup override set stable-x86_64-apple-darwin `
