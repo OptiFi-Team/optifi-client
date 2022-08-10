@@ -139,15 +139,15 @@ mod tests {
             None,
         );
 
-        println!("market: {:#?}", &optifi_client.account.markets[0]);
+        println!("market: {:#?}", &optifi_client.account.markets[1]);
 
         let signature = optifi_client
             .place_order(
                 &optifi_client.account.markets[0],
-                OrderSide::Ask,
-                1.,
-                10.,
-                OrderType::Limit,
+                OrderSide::Bid,
+                20.,
+                4.1,
+                OrderType::ImmediateOrCancel,
             )
             .unwrap();
 

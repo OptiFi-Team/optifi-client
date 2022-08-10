@@ -1,4 +1,5 @@
 pub mod client;
+pub mod cranker;
 
 pub mod prelude {
     pub use anchor_client::solana_client::rpc_request::RpcRequest;
@@ -40,5 +41,6 @@ pub mod prelude {
     pub use solana_account_decoder::UiAccountEncoding;
     pub use solana_client::pubsub_client::PubsubClient;
     pub use solana_client::rpc_config::RpcAccountInfoConfig;
+    pub use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
     pub use solana_client::rpc_response::Response;
 }
