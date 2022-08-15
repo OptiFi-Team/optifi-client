@@ -20,7 +20,7 @@ mod tests {
     #[test]
     fn test_load_optifi_exchange() {
         let mut optifi_client = OptifiClient::new(
-            Cluster::Devnet,
+            Cluster::Mainnet,
             Some("~/.config/solana/optifi.json".to_string()),
             None,
         );
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn test_load_markets() {
         let mut optifi_client = OptifiClient::new(
-            Cluster::Devnet,
+            Cluster::Mainnet,
             // Cluster::Custom("https://optifil-develope-610c.devnet.rpcpool.com/2fc9e4ee-7e7b-47c5-a9af-a3a4dc0f79c9".to_string(), "".to_string()),
             Some("~/.config/solana/optifi.json".to_string()),
             None,
