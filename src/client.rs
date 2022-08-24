@@ -1007,17 +1007,6 @@ impl OptifiClient {
             .pop()
             .unwrap();
 
-        let ix_4 = serum_dex::instruction::consume_events(
-            &serum_dex_program_id,
-            vec![&open_orders],
-            &serum_market,
-            &serum_market_pubkeys.event_q,
-            &user_instrument_long_token_vault,
-            &user_margin_account,
-            65535,
-        )
-        .unwrap();
-
         let ix_5 = self
             .program
             .request()
@@ -1076,7 +1065,6 @@ impl OptifiClient {
             .instruction(ComputeBudgetInstruction::request_units(1400000, 0))
             .instruction(ix_2)
             .instruction(ix_3)
-            .instruction(ix_4)
             .instruction(ix_5)
             .instruction(ix_6)
             .send();
