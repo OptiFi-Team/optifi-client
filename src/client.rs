@@ -76,13 +76,13 @@ impl std::fmt::Debug for Market {
 }
 
 impl OptifiClient {
-    pub fn new(cluster: Cluster, wallet_path: Option<String>, delegator: Option<Pubkey>) -> Self {
+    pub fn new(cluster: Cluster, wallet_path: Option<&str>, delegator: Option<Pubkey>) -> Self {
         let optifi_exchange = Pubkey::from_str(OPTIFI_EXCHANGE).unwrap();
 
         // Wallet and cluster params.
-        let wallet_path = wallet_path.unwrap_or("~/.config/solana/id.json".to_string());
+        let wallet_path = wallet_path.unwrap_or("~/.config/solana/id.json");
 
-        let payer = read_keypair_file(&*shellexpand::tilde(&wallet_path))
+        let payer = read_keypair_file(&*shellexpand::tilde(wallet_path))
             .expect("Example requires a keypair file");
 
         let user = payer.pubkey();
@@ -131,7 +131,7 @@ impl OptifiClient {
 
     pub fn initialize(
         cluster: Cluster,
-        wallet_path: Option<String>,
+        wallet_path: Option<&str>,
         delegator: Option<Pubkey>,
     ) -> Self {
         let mut optifi_client = OptifiClient::new(cluster, wallet_path, delegator);
@@ -173,7 +173,26 @@ impl OptifiClient {
         }
     }
 
-    pub fn load_markets(&mut self /*, asset: Option<Asset> */) {
+    pub fn load_margin_stress_account(&self, asset: Asset) -> MarginStressAccount {
+        let (margin_stress, ..) =
+            get_margin_stress_account(&self.optifi_exchange, asset as u8, &optifi_cpi::id());
+
+        let margin_stress_account: MarginStressAccount =
+            self.program.account(margin_stress).unwrap();
+
+        margin_stress_account
+    }
+
+    pub fn load_fee_account(&self) -> FeeAccount {
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &self.user_account, &optifi_cpi::id());
+
+        let fee_account: FeeAccount = self.program.account(fee_account).unwrap();
+
+        fee_account
+    }
+
+    pub fn load_markets(&mut self) {
         let optifi_exchange = self.account.optifi_exchange.as_ref().unwrap();
 
         let optifi_markets = self.program.accounts::<OptifiMarket>(vec![]).unwrap();
@@ -190,18 +209,6 @@ impl OptifiClient {
             }
 
             let optifi_market_pubkey = optifi_market_key_data.optifi_market_pubkey;
-
-            // let optifi_market: OptifiMarket = loop {
-            //     match self.program.account(optifi_market_pubkey) {
-            //         Ok(result) => {
-            //             break result;
-            //         }
-            //         Err(error) => {
-            //             println!("{}", error);
-            //             sleep(time::Duration::from_secs(10))
-            //         }
-            //     }
-            // };
 
             let optifi_market: OptifiMarket = optifi_markets
                 .iter()
@@ -221,12 +228,6 @@ impl OptifiClient {
             let (instrument_common, strike, is_call) = optifi_exchange
                 .get_instrument_data(&instrument_pubkey)
                 .unwrap();
-
-            // if let Some(asset) = asset {
-            //     if asset != instrument_common.asset {
-            //         continue;
-            //     }
-            // }
 
             let instrument_type = if is_call {
                 InstrumentType::Call
@@ -918,6 +919,9 @@ impl OptifiClient {
             &market.optifi_market.instrument_short_spl_token,
         );
 
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &user_account, &optifi_cpi::id());
+
         // Calculation
 
         // let limit = (price * 10_u32.pow(USDC_DECIMALS - asset.get_decimal()) as f64) as u64;
@@ -964,6 +968,7 @@ impl OptifiClient {
                 user,
                 user_account,
                 user_margin_account,
+                fee_account,
 
                 optifi_market,
                 serum_market,
@@ -975,7 +980,6 @@ impl OptifiClient {
                 coin_vault: *serum_market_pubkeys.coin_vault,
                 request_queue: *serum_market_pubkeys.req_q,
                 event_queue: *serum_market_pubkeys.event_q,
-                vault_signer: *serum_market_pubkeys.vault_signer_key,
 
                 coin_mint: market.optifi_market.instrument_long_spl_token,
                 instrument_short_spl_token_mint: market.optifi_market.instrument_short_spl_token,
@@ -1026,6 +1030,7 @@ impl OptifiClient {
                 optifi_market,
                 serum_market,
                 user_serum_open_orders: open_orders,
+                fee_account,
 
                 asks: *serum_market_pubkeys.asks,
                 bids: *serum_market_pubkeys.bids,
@@ -1094,6 +1099,9 @@ impl OptifiClient {
             &optifi_cpi::id(),
         );
 
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &user_account, &optifi_cpi::id());
+
         let serum_market_pubkeys: &MarketPubkeys = &market.market_pubkeys;
 
         let user_margin_account = self
@@ -1140,6 +1148,7 @@ impl OptifiClient {
                 optifi_market,
                 serum_market,
                 user_serum_open_orders: open_orders,
+                fee_account,
 
                 asks: *serum_market_pubkeys.asks,
                 bids: *serum_market_pubkeys.bids,
@@ -1238,10 +1247,16 @@ impl OptifiClient {
             &market.optifi_market.instrument_short_spl_token,
         );
 
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &user_account, &optifi_cpi::id());
+
         let (central_usdc_pool_auth, ..) =
             get_central_usdc_pool_auth_pda(&self.optifi_exchange, &optifi_cpi::id());
 
         let asset = market.instrument_common.asset;
+
+        let (margin_stress_account, ..) =
+            get_margin_stress_account(&self.optifi_exchange, asset as u8, &optifi_cpi::id());
 
         let ix_2 = self.get_margin_stress_calculate_instruction(asset);
 
@@ -1254,6 +1269,7 @@ impl OptifiClient {
                 user,
                 user_account,
                 user_margin_account,
+                fee_account,
 
                 serum_market,
                 open_orders,
@@ -1264,6 +1280,8 @@ impl OptifiClient {
 
                 usdc_fee_pool,
                 central_usdc_pool_auth,
+
+                margin_stress_account,
 
                 serum_dex_program_id,
                 token_program: self.token_program,
@@ -1300,6 +1318,7 @@ impl OptifiClient {
                 optifi_market,
                 serum_market,
                 user_serum_open_orders: open_orders,
+                fee_account,
 
                 asks: *serum_market_pubkeys.asks,
                 bids: *serum_market_pubkeys.bids,
