@@ -1,3 +1,5 @@
+use anchor_lang::Discriminator;
+
 use crate::prelude::*;
 
 pub struct OptifiClient {
@@ -192,10 +194,41 @@ impl OptifiClient {
         fee_account
     }
 
+    pub fn custom_accounts<T: AccountDeserialize + Discriminator>(
+        &self,
+        filters: Vec<RpcFilterType>,
+    ) -> std::result::Result<Vec<(Pubkey, T)>, ClientError> {
+        let account_type_filter = RpcFilterType::Memcmp(Memcmp {
+            offset: 0,
+            bytes: MemcmpEncodedBytes::Base58(
+                solana_sdk::bs58::encode(T::discriminator()).into_string(),
+            ),
+            encoding: None,
+        });
+        let config = solana_client::rpc_config::RpcProgramAccountsConfig {
+            filters: Some([vec![account_type_filter], filters].concat()),
+            account_config: RpcAccountInfoConfig {
+                encoding: Some(UiAccountEncoding::Base64),
+                data_slice: None,
+                commitment: None,
+            },
+            with_context: None,
+        };
+        Ok(self
+            .program
+            .rpc()
+            .get_program_accounts_with_config(&self.program.id(), config)?
+            .into_iter()
+            .filter_map(|(key, account)| {
+                Some((key, T::try_deserialize(&mut (&account.data as &[u8])).ok()?))
+            })
+            .collect::<Vec<_>>())
+    }
+
     pub fn load_markets(&mut self) {
         let optifi_exchange = self.account.optifi_exchange.as_ref().unwrap();
 
-        let optifi_markets = self.program.accounts::<OptifiMarket>(vec![]).unwrap();
+        let optifi_markets = self.custom_accounts::<OptifiMarket>(vec![]).unwrap();
 
         // println!("{:#?}", optifi_exchange);
 
