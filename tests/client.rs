@@ -8,11 +8,15 @@ mod tests {
 
     const RPC: &str = "https://solana-devnet.g.alchemy.com/v2/82EVwHdtOiC3-kAA4rqnGWWogvUmIMf8";
 
-    const WALLET_PATH: Option<&str> = Some("~/.config/solana/optifi.json");
+    const WALLET_PATH: &str = "~/.config/solana/optifi.json";
 
     #[test]
     fn test_initialize_user_account() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let signature = optifi_client.initialize_user_account();
 
@@ -21,8 +25,11 @@ mod tests {
 
     #[test]
     fn test_load_optifi_exchange() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_optifi_exchange();
 
@@ -31,8 +38,11 @@ mod tests {
 
     #[test]
     fn test_load_user_account() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_user_account();
 
@@ -43,7 +53,11 @@ mod tests {
 
     #[test]
     fn test_load_margin_stress_account() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let margin_stress_account = optifi_client.load_margin_stress_account(Asset::Bitcoin);
 
@@ -52,7 +66,11 @@ mod tests {
 
     #[test]
     fn test_load_fee_account() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let fee_account = optifi_client.load_fee_account();
 
@@ -64,7 +82,7 @@ mod tests {
         let mut optifi_client = OptifiClient::new(
             Cluster::from_str(RPC).unwrap(),
             // Cluster::Custom("https://optifil-develope-610c.devnet.rpcpool.com/2fc9e4ee-7e7b-47c5-a9af-a3a4dc0f79c9".to_string(), "".to_string()),
-            WALLET_PATH,
+            Some(WALLET_PATH.to_owned()),
             None,
         );
 
@@ -81,7 +99,11 @@ mod tests {
 
     #[test]
     fn test_deposit() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let signature = optifi_client.deposit(100.).unwrap();
 
@@ -90,7 +112,11 @@ mod tests {
 
     #[test]
     fn test_withdraw() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let signature = optifi_client.withdraw(100.).unwrap();
 
@@ -99,8 +125,11 @@ mod tests {
 
     #[test]
     fn test_initialize_user_on_market() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_optifi_exchange();
 
@@ -115,8 +144,11 @@ mod tests {
 
     #[test]
     fn test_set_delegation() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_user_account();
 
@@ -133,8 +165,11 @@ mod tests {
 
     #[test]
     fn test_place_order() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         println!("market: {:#?}", &optifi_client.account.markets[1]);
 
@@ -158,7 +193,7 @@ mod tests {
 
         let optifi_client = OptifiClient::initialize(
             Cluster::from_str(RPC).unwrap(),
-            Some("~/.config/solana/delegatee.json"),
+            Some("~/.config/solana/delegatee.json".to_owned()),
             Some(delegator.pubkey()),
         );
 
@@ -179,8 +214,11 @@ mod tests {
 
     #[test]
     fn test_settle_order() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let signature = optifi_client
             .settle_order(&optifi_client.account.markets[0])
@@ -191,8 +229,11 @@ mod tests {
 
     #[test]
     fn test_load_open_orders() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let orders = optifi_client.load_open_orders(&optifi_client.account.markets[0]);
 
@@ -201,8 +242,11 @@ mod tests {
 
     #[test]
     fn test_load_order_book() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_optifi_exchange();
 
@@ -220,7 +264,7 @@ mod tests {
     fn test_cancel_order_with_delegation() {
         let optifi_client = OptifiClient::initialize(
             Cluster::from_str(RPC).unwrap(),
-            WALLET_PATH,
+            Some(WALLET_PATH.to_owned()),
             Some(Pubkey::from_str("GRLYbdHJEtC3yu48cPbHwadqfek2Y3C75CLXsGmvoqE1").unwrap()),
         );
 
@@ -241,8 +285,11 @@ mod tests {
 
     #[test]
     fn test_cancel_order() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let open_orders = optifi_client.load_open_orders(&optifi_client.account.markets[0]);
 
@@ -261,16 +308,22 @@ mod tests {
 
     #[test]
     fn test_cancel_all_order() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.cancel_all_order(&optifi_client.account.markets[0]);
     }
 
     #[test]
     fn test_subscribe_ask() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         println!("{:#?}", &optifi_client.account.markets[0]);
 
@@ -279,7 +332,11 @@ mod tests {
 
     #[test]
     fn load_other_user() {
-        let optifi_client = OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         let user = Pubkey::from_str("H1HDXTwT8SStYffNkAqVzy3p9PEKoeg94nUhYr4YkvQx").unwrap();
 
@@ -293,8 +350,11 @@ mod tests {
 
     #[test]
     fn test_subscribe_open_orders() {
-        let optifi_client =
-            OptifiClient::initialize(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let optifi_client = OptifiClient::initialize(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         println!("{:#?}", &optifi_client.account.markets[0]);
 
@@ -303,8 +363,11 @@ mod tests {
 
     #[test]
     fn test_subscribe_user_account() {
-        let mut optifi_client =
-            OptifiClient::new(Cluster::from_str(RPC).unwrap(), WALLET_PATH, None);
+        let mut optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
 
         optifi_client.load_user_account();
 

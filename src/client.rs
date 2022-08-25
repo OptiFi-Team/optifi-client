@@ -76,13 +76,13 @@ impl std::fmt::Debug for Market {
 }
 
 impl OptifiClient {
-    pub fn new(cluster: Cluster, wallet_path: Option<&str>, delegator: Option<Pubkey>) -> Self {
+    pub fn new(cluster: Cluster, wallet_path: Option<String>, delegator: Option<Pubkey>) -> Self {
         let optifi_exchange = Pubkey::from_str(OPTIFI_EXCHANGE).unwrap();
 
         // Wallet and cluster params.
-        let wallet_path = wallet_path.unwrap_or("~/.config/solana/id.json");
+        let wallet_path = wallet_path.unwrap_or("~/.config/solana/id.json".to_owned());
 
-        let payer = read_keypair_file(&*shellexpand::tilde(wallet_path))
+        let payer = read_keypair_file(shellexpand::tilde(&wallet_path).as_ref())
             .expect("Example requires a keypair file");
 
         let user = payer.pubkey();
@@ -131,7 +131,7 @@ impl OptifiClient {
 
     pub fn initialize(
         cluster: Cluster,
-        wallet_path: Option<&str>,
+        wallet_path: Option<String>,
         delegator: Option<Pubkey>,
     ) -> Self {
         let mut optifi_client = OptifiClient::new(cluster, wallet_path, delegator);
