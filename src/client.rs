@@ -652,7 +652,7 @@ impl OptifiClient {
         {
             Ok(account) => account,
             Err(_) => {
-                println!("AccountNotFound");
+                // println!("AccountNotFound");
                 return vec![];
             }
         };
@@ -1766,4 +1766,136 @@ pub fn parse_usdc_account_inner(ui_account: Response<UiAccount>) -> Result<u64> 
     );
 
     accessor::amount(&account_info)
+}
+
+pub fn load_asks(client: &OptifiClient, market: &Market) {
+    let serum_market = market.optifi_market.serum_market;
+
+    let asset = market.instrument_common.asset;
+
+    let mut market_account = market.serum_account.clone();
+
+    let market_account_info = AccountInfo::new(
+        &serum_market,
+        false,
+        false,
+        &mut market_account.lamports,
+        &mut market_account.data,
+        &mut market_account.owner,
+        market_account.executable,
+        market_account.rent_epoch,
+    );
+
+    let serum_dex_program_id = Pubkey::from_str(SERUM_DEX_PROGRAM_ID).unwrap();
+
+    let serum_market =
+        serum_dex::state::Market::load(&market_account_info, &serum_dex_program_id, false).unwrap();
+
+    let mut asks_account = client
+        .program
+        .rpc()
+        .get_account(&market.market_pubkeys.asks)
+        .unwrap();
+
+    let asks_account_info = AccountInfo::new(
+        &market.market_pubkeys.asks,
+        false,
+        true,
+        &mut asks_account.lamports,
+        &mut asks_account.data,
+        &mut asks_account.owner,
+        asks_account.executable,
+        asks_account.rent_epoch,
+    );
+
+    let asks = serum_market
+        .load_asks_mut(&asks_account_info)
+        .map_err(|err| Error::ProgramError(ProgramError::from(err).into()))
+        .unwrap();
+
+    for node in asks.traverse().iter() {
+        let order = OptifiOrder {
+            side: OrderSide::Ask,
+            price: u64::from(node.price()) as f64
+                / 10_u32.pow(USDC_DECIMALS - asset.get_decimal()) as f64,
+            size: node.quantity() as f64 / 10_u32.pow(asset.get_decimal()) as f64,
+            client_order_id: node.client_order_id(),
+        };
+        // println!("Ask");
+        // println!("{:#?}", node);
+        println!(
+            "{:?}, {}, {:?}, {}, {}",
+            market.instrument_common.asset,
+            market.strike,
+            market.instrument_type,
+            order.size,
+            order.price
+        );
+    }
+}
+
+pub fn load_bids(client: &OptifiClient, market: &Market) {
+    let serum_market = market.optifi_market.serum_market;
+
+    let asset = market.instrument_common.asset;
+
+    let mut market_account = market.serum_account.clone();
+
+    let market_account_info = AccountInfo::new(
+        &serum_market,
+        false,
+        false,
+        &mut market_account.lamports,
+        &mut market_account.data,
+        &mut market_account.owner,
+        market_account.executable,
+        market_account.rent_epoch,
+    );
+
+    let serum_dex_program_id = Pubkey::from_str(SERUM_DEX_PROGRAM_ID).unwrap();
+
+    let serum_market =
+        serum_dex::state::Market::load(&market_account_info, &serum_dex_program_id, false).unwrap();
+
+    let mut bids_account = client
+        .program
+        .rpc()
+        .get_account(&market.market_pubkeys.bids)
+        .unwrap();
+
+    let bids_account_info = AccountInfo::new(
+        &market.market_pubkeys.bids,
+        false,
+        true,
+        &mut bids_account.lamports,
+        &mut bids_account.data,
+        &mut bids_account.owner,
+        bids_account.executable,
+        bids_account.rent_epoch,
+    );
+
+    let bids = serum_market
+        .load_bids_mut(&bids_account_info)
+        .map_err(|err| Error::ProgramError(ProgramError::from(err).into()))
+        .unwrap();
+
+    for node in bids.traverse().iter() {
+        let order = OptifiOrder {
+            side: OrderSide::Bid,
+            price: u64::from(node.price()) as f64
+                / 10_u32.pow(USDC_DECIMALS - asset.get_decimal()) as f64,
+            size: node.quantity() as f64 / 10_u32.pow(asset.get_decimal()) as f64,
+            client_order_id: node.client_order_id(),
+        };
+        // println!("Bid");
+        // println!("{:#?}", node);
+        println!(
+            "{:?}, {}, {:?}, {}, {}",
+            market.instrument_common.asset,
+            market.strike,
+            market.instrument_type,
+            order.size,
+            order.price
+        );
+    }
 }
