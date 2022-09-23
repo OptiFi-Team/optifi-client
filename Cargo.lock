@@ -207,6 +207,52 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-gen"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82c66ee428b58005d2f2e3a8f3f795a83ee77e0ae92634f2f10d38e8223be413"
+dependencies = [
+ "anchor-generate-cpi-crate",
+ "anchor-generate-cpi-interface",
+]
+
+[[package]]
+name = "anchor-generate-cpi-crate"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df80faf78057bc25344432f9ba0187a08591b2c5b17c8094a2604df7ef7a77c0"
+dependencies = [
+ "anchor-idl",
+ "syn 1.0.99",
+]
+
+[[package]]
+name = "anchor-generate-cpi-interface"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d8f3399fd9a9198fa161ff6b0e7f789fdfffc66f74f2d0bfcbc4c0cb5de74e4"
+dependencies = [
+ "anchor-idl",
+ "darling",
+ "syn 1.0.99",
+]
+
+[[package]]
+name = "anchor-idl"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80d40b28558607ed4db368939b8abfe5c45ebad13bdce5236b1222955b1e88be"
+dependencies = [
+ "anchor-syn",
+ "darling",
+ "heck 0.4.0",
+ "proc-macro2 1.0.43",
+ "quote 1.0.21",
+ "serde_json",
+ "syn 1.0.99",
+]
+
+[[package]]
 name = "anchor-lang"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -888,6 +934,41 @@ dependencies = [
  "rand_core 0.5.1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "darling"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4529658bdda7fd6769b8614be250cdcfc3aeb0ee72fe66f9e41e5e5eb73eac02"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "649c91bc01e8b1eac09fb91e8dbc7d517684ca6be8ebc75bb9cafc894f9fdb6f"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2 1.0.43",
+ "quote 1.0.21",
+ "strsim 0.10.0",
+ "syn 1.0.99",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ddfc69c5bfcbd2fc09a0f38451d2daf0e372e367986a83906d1b0dbc88134fb5"
+dependencies = [
+ "darling_core",
+ "quote 1.0.21",
+ "syn 1.0.99",
 ]
 
 [[package]]
@@ -1669,6 +1750,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "idna"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2221,13 +2308,14 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "optifi-client"
-version = "0.3.3"
+version = "0.4.1"
 dependencies = [
  "anchor-client",
  "anchor-lang",
  "anchor-spl",
  "crank",
  "optifi-cpi",
+ "optifi-usdc-cpi",
  "rust_decimal",
  "serde_json",
  "serum_dex 0.5.6",
@@ -2241,15 +2329,25 @@ dependencies = [
 
 [[package]]
 name = "optifi-cpi"
-version = "0.2.1"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0267ae09e1142a14a82f9fa028dd4f5820fff0616f55701999464d093df4d24e"
+checksum = "c9d626563f732c4294fb4abd24305d203494038bf6e219a5cb8eb130f42a03e3"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
  "serum_dex 0.5.4",
  "solana-program",
  "spl-token 3.2.0",
+]
+
+[[package]]
+name = "optifi-usdc-cpi"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d48fbddbbff71b323f204e9c1b1bfbceb9a407225cf48257d9b340c0cb34a049"
+dependencies = [
+ "anchor-gen",
+ "anchor-lang",
 ]
 
 [[package]]

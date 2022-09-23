@@ -5,9 +5,11 @@ use crate::prelude::*;
 pub struct OptifiClient {
     pub cluster: Cluster,
     pub program: Program,
+    pub usdc_program: Program,
     pub optifi_exchange: Pubkey,
     pub user_account: Pubkey,
     pub usdc_token_mint: Pubkey,
+    pub optifi_usdc_token_mint: Pubkey,
     pub token_program: Pubkey,
     pub system_program: Pubkey,
     pub rent: Pubkey,
@@ -99,6 +101,10 @@ impl OptifiClient {
         // Program client.
         let program = client.program(optifi_cpi::id());
 
+        let usdc_program = client.program(optifi_usdc_cpi::id());
+
+        let (optifi_usdc, ..) = Pubkey::find_program_address(&[b"optifi_usdc"], &usdc_program.id());
+
         let (user_account_key, ..) = if delegator.is_some() {
             (delegator.unwrap(), 0)
         } else {
@@ -119,9 +125,11 @@ impl OptifiClient {
         let optifi_client = Self {
             cluster,
             program,
+            usdc_program,
             optifi_exchange,
             user_account: user_account_key,
             usdc_token_mint,
+            optifi_usdc_token_mint: optifi_usdc,
             token_program,
             system_program,
             rent,
@@ -401,7 +409,7 @@ impl OptifiClient {
                 spl_token::instruction::initialize_account(
                     &self.token_program,
                     &user_margin_account_usdc.pubkey(),
-                    &self.usdc_token_mint,
+                    &self.optifi_usdc_token_mint,
                     &user,
                 )
                 .unwrap(),
@@ -463,22 +471,56 @@ impl OptifiClient {
 
         let user_margin_account_usdc = user_account.user_margin_account_usdc;
 
-        let deposit_source = get_associated_token_address(&user, &self.usdc_token_mint);
-
         let amount = (ui_amount * 1000000.) as u64;
 
         println!("deposit ui_amount: {}, amount: {}", ui_amount, amount);
+
+        // For optifi-usdc-cpi
+
+        let associated_token_program = anchor_spl::associated_token::AssociatedToken::id();
+
+        let (authority, ..) =
+            Pubkey::find_program_address(&[b"authority"], &self.usdc_program.id());
+
+        let usdc_vault = get_associated_token_address(&authority, &self.usdc_token_mint);
+
+        let owner_usdc = get_associated_token_address(&user, &self.usdc_token_mint);
+
+        let owner_optifi_usdc = get_associated_token_address(&user, &self.optifi_usdc_token_mint);
+
+        let ix = self
+            .usdc_program
+            .request()
+            .accounts(optifi_usdc_cpi::accounts::Wrap {
+                authority,
+                optifi_usdc: self.optifi_usdc_token_mint,
+                usdc_vault,
+                usdc_mint: self.usdc_token_mint,
+                owner_usdc,
+                owner_optifi_usdc,
+                owner: user,
+                token_program: self.token_program,
+                associated_token_program,
+                system_program: self.system_program,
+                rent: self.rent,
+            })
+            .args(optifi_usdc_cpi::instruction::Wrap { _amount: amount })
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
 
         // Build and send a transaction.
         let tx = self
             .program
             .request()
+            .instruction(ix)
             .accounts(optifi_cpi::accounts::Deposit {
                 optifi_exchange: self.optifi_exchange,
                 user_account: user_account_key,
                 user_margin_account_usdc,
                 user,
-                deposit_source,
+                deposit_source: owner_optifi_usdc,
                 token_program: self.token_program,
             })
             .args(optifi_cpi::instruction::Deposit { amount })
@@ -587,8 +629,6 @@ impl OptifiClient {
 
         let asset_feed = oracle.spot_oracle.unwrap();
 
-        let iv_feed = oracle.iv_oracle.unwrap();
-
         let usdc_feed = exchange.get_oracle(Asset::USDC).spot_oracle.unwrap();
 
         let (margin_stress_account, ..) =
@@ -601,7 +641,6 @@ impl OptifiClient {
                 optifi_exchange: self.optifi_exchange,
                 margin_stress_account,
                 asset_feed,
-                iv_feed,
                 usdc_feed,
             })
             .args(optifi_cpi::instruction::MarginStressCalculate {})
@@ -1040,6 +1079,9 @@ impl OptifiClient {
             .pop()
             .unwrap();
 
+        let (serum_market_authority, ..) =
+            get_serum_market_auth_pda(&self.optifi_exchange, &optifi_cpi::id());
+
         let ix_5 = self
             .program
             .request()
@@ -1054,11 +1096,10 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                asks: *serum_market_pubkeys.asks,
-                bids: *serum_market_pubkeys.bids,
+                consume_events_authority: serum_market_authority,
+
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                request_queue: *serum_market_pubkeys.req_q,
                 event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
@@ -1146,16 +1187,28 @@ impl OptifiClient {
 
         let ix_2 = self.get_margin_stress_calculate_instruction(asset);
 
-        let ix_4 = serum_dex::instruction::consume_events(
-            &serum_dex_program_id,
-            vec![&open_orders],
-            &serum_market,
-            &serum_market_pubkeys.event_q,
-            &user_instrument_long_token_vault,
-            &user_margin_account,
-            65535,
-        )
-        .unwrap();
+        let (serum_market_authority, ..) =
+            get_serum_market_auth_pda(&self.optifi_exchange, &optifi_cpi::id());
+
+        let ix_4 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::ConsumeEventQueue {
+                optifi_exchange: self.optifi_exchange,
+
+                serum_market,
+                event_queue: *serum_market_pubkeys.event_q,
+                user_serum_open_orders: open_orders,
+
+                consume_events_authority: serum_market_authority,
+
+                serum_dex_program_id,
+            })
+            .args(optifi_cpi::instruction::SettleOrderFunds {})
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
 
         let ix_5 = self
             .program
@@ -1171,11 +1224,10 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                asks: *serum_market_pubkeys.asks,
-                bids: *serum_market_pubkeys.bids,
+                consume_events_authority: serum_market_authority,
+
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                request_queue: *serum_market_pubkeys.req_q,
                 event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
@@ -1316,16 +1368,28 @@ impl OptifiClient {
             .pop()
             .unwrap();
 
-        let ix_4 = serum_dex::instruction::consume_events(
-            &serum_dex_program_id,
-            vec![&open_orders],
-            &serum_market,
-            &serum_market_pubkeys.event_q,
-            &user_instrument_long_token_vault,
-            &user_margin_account,
-            65535,
-        )
-        .unwrap();
+        let (serum_market_authority, ..) =
+            get_serum_market_auth_pda(&self.optifi_exchange, &optifi_cpi::id());
+
+        let ix_4 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::ConsumeEventQueue {
+                optifi_exchange: self.optifi_exchange,
+
+                serum_market,
+                event_queue: *serum_market_pubkeys.event_q,
+                user_serum_open_orders: open_orders,
+
+                consume_events_authority: serum_market_authority,
+
+                serum_dex_program_id,
+            })
+            .args(optifi_cpi::instruction::SettleOrderFunds {})
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
 
         let ix_5 = self
             .program
@@ -1341,11 +1405,10 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                asks: *serum_market_pubkeys.asks,
-                bids: *serum_market_pubkeys.bids,
+                consume_events_authority: serum_market_authority,
+
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                request_queue: *serum_market_pubkeys.req_q,
                 event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
