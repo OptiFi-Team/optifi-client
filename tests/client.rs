@@ -6,7 +6,7 @@ mod tests {
 
     // const RPC: &str = "https://solana-mainnet.g.alchemy.com/v2/OJxaca6y_6S2MJYq6WbKPIcdVwsbNS0j";
 
-    const RPC: &str = "https://solana-devnet.g.alchemy.com/v2/82EVwHdtOiC3-kAA4rqnGWWogvUmIMf8";
+    const RPC: &str = "https://devnet.genesysgo.net";
 
     const WALLET_PATH: &str = "~/.config/solana/optifi.json";
 
@@ -19,6 +19,19 @@ mod tests {
         );
 
         let signature = optifi_client.initialize_user_account();
+
+        println!("signature: {:?}", signature);
+    }
+
+    #[test]
+    fn test_initialize_fee_account() {
+        let optifi_client = OptifiClient::new(
+            Cluster::from_str(RPC).unwrap(),
+            Some(WALLET_PATH.to_owned()),
+            None,
+        );
+
+        let signature = optifi_client.initialize_fee_account();
 
         println!("signature: {:?}", signature);
     }
@@ -177,9 +190,9 @@ mod tests {
             .place_order(
                 &optifi_client.account.markets[0],
                 OrderSide::Bid,
-                20.,
-                4.1,
-                OrderType::ImmediateOrCancel,
+                1.,
+                0.01,
+                OrderType::Limit,
             )
             .unwrap();
 

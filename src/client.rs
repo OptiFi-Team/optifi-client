@@ -391,6 +391,50 @@ impl OptifiClient {
             user_margin_account_usdc.pubkey()
         );
 
+        let ix_1 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::InitializeUserAccount {
+                optifi_exchange: self.optifi_exchange,
+                user_account: user_account_key,
+                user_margin_account_usdc: user_margin_account_usdc.pubkey(),
+                owner: user,
+                payer: user,
+                token_program: self.token_program,
+                system_program: self.system_program,
+                rent: self.rent,
+                liquidation_account,
+            })
+            .args(optifi_cpi::instruction::InitUserAccount {
+                bump: InitUserAccountBumpSeeds {
+                    user_account: user_account_bump,
+                    liquidation_account: liquidation_account_bump,
+                },
+            })
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
+
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &user_account_key, &optifi_cpi::id());
+
+        let ix_2 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::InitializeFeeAccount {
+                optifi_exchange: self.optifi_exchange,
+                user_account: user_account_key,
+                payer: user,
+                fee_account,
+                system_program: self.system_program,
+            })
+            .args(optifi_cpi::instruction::InitializeFeeAccount {})
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
+
         // Build and send a transaction.
         let tx = self
             .program
@@ -415,24 +459,40 @@ impl OptifiClient {
                 .unwrap(),
             )
             .signer(&user_margin_account_usdc)
-            .accounts(optifi_cpi::accounts::InitializeUserAccount {
+            .instruction(ix_1)
+            .instruction(ix_2)
+            .send();
+
+        tx
+    }
+
+    pub fn initialize_fee_account(&self) -> std::result::Result<Signature, ClientError> {
+        let user = self.program.payer();
+
+        let (user_account_key, ..) =
+            get_user_account_pda(&self.optifi_exchange, &user, &optifi_cpi::id());
+
+        let (fee_account, ..) =
+            get_user_fee_account_pda(&self.optifi_exchange, &user_account_key, &optifi_cpi::id());
+
+        let ix_2 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::InitializeFeeAccount {
                 optifi_exchange: self.optifi_exchange,
                 user_account: user_account_key,
-                user_margin_account_usdc: user_margin_account_usdc.pubkey(),
-                owner: user,
                 payer: user,
-                token_program: self.token_program,
+                fee_account,
                 system_program: self.system_program,
-                rent: self.rent,
-                liquidation_account,
             })
-            .args(optifi_cpi::instruction::InitUserAccount {
-                bump: InitUserAccountBumpSeeds {
-                    user_account: user_account_bump,
-                    liquidation_account: liquidation_account_bump,
-                },
-            })
-            .send();
+            .args(optifi_cpi::instruction::InitializeFeeAccount {})
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
+
+        // Build and send a transaction.
+        let tx = self.program.request().instruction(ix_2).send();
 
         tx
     }
