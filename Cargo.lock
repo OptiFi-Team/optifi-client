@@ -2314,6 +2314,8 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "crank",
+ "env_logger",
+ "log",
  "optifi-cpi",
  "optifi-usdc-cpi",
  "rust_decimal",

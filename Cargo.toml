@@ -23,15 +23,21 @@ crate-type = ["cdylib", "lib"]
 name = "optifi_client"
 
 [features]
-default = ["optifi-cpi/cpi", "optifi-usdc-cpi/cpi"]
-devnet = ["optifi-cpi/cpi", "optifi-cpi/devnet", "optifi-usdc-cpi/cpi", "optifi-usdc-cpi/devnet"]
+devnet = [
+    "optifi-cpi/cpi",
+    "optifi-cpi/devnet",
+    "optifi-usdc-cpi/cpi",
+    "optifi-usdc-cpi/devnet",
+]
 
 [dependencies]
 anchor-client = "0.24.2"
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
-optifi-cpi = { version = "0.3.4", features = ["cpi"] }
-optifi-usdc-cpi = { version = "0.1.0", features = ["cpi"] }
+env_logger = "0.9.0"
+log = { version = "0.4.16", features = ["release_max_level_debug"] }
+optifi-cpi = { version = "=0.3.4", features = ["cpi"] }
+optifi-usdc-cpi = { version = "=0.1.0", features = ["cpi"] }
 rust_decimal = "1.26.1"
 serde_json = "1.0.72"
 serum_dex = { branch = "master", git = "https://github.com/OptiFi-Team/serum-dex.git", features = [
