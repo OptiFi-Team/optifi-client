@@ -2308,7 +2308,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "optifi-client"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "anchor-client",
  "anchor-lang",
@@ -2331,9 +2331,9 @@ dependencies = [
 
 [[package]]
 name = "optifi-cpi"
-version = "0.3.4"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9d626563f732c4294fb4abd24305d203494038bf6e219a5cb8eb130f42a03e3"
+checksum = "5db9e5b580839bdef500b06cd8597bc2e6fac08a660386d63fe503bc73ff5233"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

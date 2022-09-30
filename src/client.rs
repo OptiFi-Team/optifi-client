@@ -1142,6 +1142,23 @@ impl OptifiClient {
         let (serum_market_authority, ..) =
             get_serum_market_auth_pda(&self.optifi_exchange, &optifi_cpi::id());
 
+        let ix_4 = self
+            .program
+            .request()
+            .accounts(optifi_cpi::accounts::ConsumeEventQueue {
+                optifi_exchange: self.optifi_exchange,
+                serum_market,
+                event_queue: *serum_market_pubkeys.event_q,
+                user_serum_open_orders: open_orders,
+                consume_events_authority: serum_market_authority,
+                serum_dex_program_id,
+            })
+            .args(optifi_cpi::instruction::ConsumeEventQueue { limit: Some(5) })
+            .instructions()
+            .unwrap()
+            .pop()
+            .unwrap();
+
         let ix_5 = self
             .program
             .request()
@@ -1156,11 +1173,8 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                consume_events_authority: serum_market_authority,
-
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
                 instrument_long_spl_token_mint: market.optifi_market.instrument_long_spl_token,
@@ -1184,7 +1198,6 @@ impl OptifiClient {
                 optifi_exchange: self.optifi_exchange,
                 user_account,
                 margin_stress_account,
-                clock: solana_program::sysvar::clock::id(),
             })
             .args(optifi_cpi::instruction::UserMarginCalculate {})
             .instructions()
@@ -1199,6 +1212,7 @@ impl OptifiClient {
             .instruction(ComputeBudgetInstruction::request_units(1400000, 0))
             .instruction(ix_2)
             .instruction(ix_3)
+            .instruction(ix_4)
             .instruction(ix_5)
             .instruction(ix_6)
             .send();
@@ -1255,16 +1269,13 @@ impl OptifiClient {
             .request()
             .accounts(optifi_cpi::accounts::ConsumeEventQueue {
                 optifi_exchange: self.optifi_exchange,
-
                 serum_market,
                 event_queue: *serum_market_pubkeys.event_q,
                 user_serum_open_orders: open_orders,
-
                 consume_events_authority: serum_market_authority,
-
                 serum_dex_program_id,
             })
-            .args(optifi_cpi::instruction::SettleOrderFunds {})
+            .args(optifi_cpi::instruction::ConsumeEventQueue { limit: Some(5) })
             .instructions()
             .unwrap()
             .pop()
@@ -1284,11 +1295,8 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                consume_events_authority: serum_market_authority,
-
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
                 instrument_long_spl_token_mint: market.optifi_market.instrument_long_spl_token,
@@ -1317,7 +1325,6 @@ impl OptifiClient {
                 optifi_exchange: self.optifi_exchange,
                 user_account,
                 margin_stress_account,
-                clock: solana_program::sysvar::clock::id(),
             })
             .args(optifi_cpi::instruction::UserMarginCalculate {})
             .instructions()
@@ -1436,16 +1443,13 @@ impl OptifiClient {
             .request()
             .accounts(optifi_cpi::accounts::ConsumeEventQueue {
                 optifi_exchange: self.optifi_exchange,
-
                 serum_market,
                 event_queue: *serum_market_pubkeys.event_q,
                 user_serum_open_orders: open_orders,
-
                 consume_events_authority: serum_market_authority,
-
                 serum_dex_program_id,
             })
-            .args(optifi_cpi::instruction::SettleOrderFunds {})
+            .args(optifi_cpi::instruction::ConsumeEventQueue { limit: Some(5) })
             .instructions()
             .unwrap()
             .pop()
@@ -1465,11 +1469,8 @@ impl OptifiClient {
                 user_serum_open_orders: open_orders,
                 fee_account,
 
-                consume_events_authority: serum_market_authority,
-
                 pc_vault: *serum_market_pubkeys.pc_vault,
                 coin_vault: *serum_market_pubkeys.coin_vault,
-                event_queue: *serum_market_pubkeys.event_q,
                 vault_signer: *serum_market_pubkeys.vault_signer_key,
 
                 instrument_long_spl_token_mint: market.optifi_market.instrument_long_spl_token,
@@ -1496,7 +1497,6 @@ impl OptifiClient {
                 optifi_exchange: self.optifi_exchange,
                 user_account,
                 margin_stress_account,
-                clock: solana_program::sysvar::clock::id(),
             })
             .args(optifi_cpi::instruction::UserMarginCalculate {})
             .instructions()
