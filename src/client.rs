@@ -1080,7 +1080,7 @@ impl OptifiClient {
             .checked_mul(
                 Decimal::from_f64(1.0)
                     .unwrap()
-                    .checked_add(Decimal::from_f64(TAKER_FEE).unwrap())
+                    .checked_add(Decimal::from_f64(SERUM_TAKER_FEE).unwrap())
                     .unwrap(),
             )
             .unwrap()
